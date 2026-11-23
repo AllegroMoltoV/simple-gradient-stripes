@@ -1,59 +1,168 @@
-# OBS Plugin Template
+# シンプルグラデーションストライプ / Simple Gradient Stripes
 
-## Introduction
+OBS Studio 向けの、グラデーションのしま模様が流れるシンプルな入力ソースのプラグインです。
 
-The plugin template is meant to be used as a starting point for OBS Studio plugin development. It includes:
+A simple input source plugin for OBS Studio that draws flowing gradient stripes.
 
-* Boilerplate plugin source code
-* A CMake project file
-* GitHub Actions workflows and repository actions
+[配信プラグイン倉庫くん](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes) にも掲載しています。 / Also listed on [Plugin Soko-kun](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes?lang=en).
 
-## Supported Build Environments
+## Features / 機能
 
-| Platform  | Tool   |
-|-----------|--------|
-| Windows   | Visual Studio 17 2022 |
-| macOS     | XCode 16.0 |
-| Windows, macOS  | CMake 3.30.5 |
-| Ubuntu 24.04 | CMake 3.28.3 |
-| Ubuntu 24.04 | `ninja-build` |
-| Ubuntu 24.04 | `pkg-config`
-| Ubuntu 24.04 | `build-essential` |
+しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色は既定で透明なため、ほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
 
-## Quick Start
+An input source that draws stripes fading from the stripe color to the background color and moves them at a constant speed. Use it as a stream background or as an overlay on other video. You can adjust the angle, spacing, speed, colors, and softness independently in the OBS properties. The background color is transparent by default, so the stripes can be layered over other sources. All drawing runs in a GPU shader. The plugin sends nothing over the network.
 
-An absolute bare-bones [Quick Start Guide](https://github.com/obsproject/obs-plugintemplate/wiki/Quick-Start-Guide) is available in the wiki.
+- **Angle・角度** - しまの線の傾き
+- **Spacing・間隔** - しま 1 周期の長さ
+- **Speed・流れる速さ** - しまが流れる速さと向き
+- **Stripe color・しまの色** - しまの色と不透明度
+- **Background color・地の色** - しまの間の色と不透明度
+- **Softness・ぼかし** - しまの縁のなめらかさ
 
-## Documentation
+## Installation / インストール
 
-All documentation can be found in the [Plugin Template Wiki](https://github.com/obsproject/obs-plugintemplate/wiki).
+### Windows
 
-Suggested reading to get up and running:
+Windows 版は OBS Studio 31.1 以降向けにビルドしています。
 
-* [Getting started](https://github.com/obsproject/obs-plugintemplate/wiki/Getting-Started)
-* [Build system requirements](https://github.com/obsproject/obs-plugintemplate/wiki/Build-System-Requirements)
-* [Build system options](https://github.com/obsproject/obs-plugintemplate/wiki/CMake-Build-System-Options)
+#### 通常版 OBS への導入
 
-## GitHub Actions & CI
+プラグインを OBS Studio の共通プラグインフォルダーへ配置します。
 
-Default GitHub Actions workflows are available for the following repository actions:
+1. OBS Studio を終了してください。
+2. [Releases](../../releases) から Windows 用の zip ファイルをダウンロードし、展開してください。
+3. エクスプローラーのアドレスバーへ `%PROGRAMDATA%` を入力し、Enter キーを押してください。隠しフォルダーの表示設定を変更する必要はありません。
+4. `obs-studio` フォルダーを開き、その中の `plugins` フォルダーを開いてください。存在しないフォルダーは順に作成してください。
+5. 展開した `simple-gradient-stripes` フォルダーを `plugins` へコピーしてください。管理者の許可を求められた場合は許可してください。
+6. OBS Studio を起動し、ソースの「+」からシンプルグラデーションストライプを追加してください。
 
-* `push`: Run for commits or tags pushed to `master` or `main` branches.
-* `pr-pull`: Run when a Pull Request has been pushed or synchronized.
-* `dispatch`: Run when triggered by the workflow dispatch in GitHub's user interface.
-* `build-project`: Builds the actual project and is triggered by other workflows.
-* `check-format`: Checks CMake and plugin source code formatting and is triggered by other workflows.
+導入後の構成を次に示します。`simple-gradient-stripes` フォルダーを二重に作らないでください。PDB ファイルが同梱されている場合も、製品フォルダーごとコピーします。
 
-The workflows make use of GitHub repository actions (contained in `.github/actions`) and build scripts (contained in `.github/scripts`) which are not needed for local development, but might need to be adjusted if additional/different steps are required to build the plugin.
+```text
+%PROGRAMDATA%\obs-studio\plugins\
+└─ simple-gradient-stripes\
+   ├─ simple-gradient-stripes.dll
+   └─ data\
+      ├─ gradient-stripes.effect
+      └─ locale\
+         ├─ en-US.ini
+         └─ ja-JP.ini
+```
 
-### Retrieving build artifacts
+更新するときは、OBS Studio を終了し、同じ手順で `simple-gradient-stripes` フォルダーを上書きコピーしてください。設定やシーンは削除しないでください。
 
-Successful builds on GitHub Actions will produce build artifacts that can be downloaded for testing. These artifacts are commonly simple archives and will not contain package installers or installation programs.
+#### ポータブル版 OBS
 
-### Building a Release
+ポータブル版では、OBS Studio のルートフォルダーにある `plugins` へ製品フォルダーをコピーします。通常版の `%PROGRAMDATA%` への導入では読み込まれません。
 
-To create a release, an appropriately named tag needs to be pushed to the `main`/`master` branch using semantic versioning (e.g., `12.3.4`, `23.4.5-beta2`). A draft release will be created on the associated repository with generated installer packages or installation programs attached as release artifacts.
+OBS Studio を終了し、`bin` や `data` と同じ階層に `plugins` フォルダーを作成してください。展開した製品フォルダーをコピーし、`plugins\simple-gradient-stripes\simple-gradient-stripes.dll` と `plugins\simple-gradient-stripes\data` を配置してから OBS Studio を起動します。
 
-## Signing and Notarizing on macOS
+### Linux
 
-Basic concepts of codesigning and notarization on macOS are explained in the correspodning [Wiki article](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS) which has a specific section for the [GitHub Actions setup](https://github.com/obsproject/obs-plugintemplate/wiki/Codesigning-On-macOS#setting-up-code-signing-for-github-actions).
+Ubuntu では、Releases の `simple-gradient-stripes-<version>-x86_64-linux-gnu.deb` を `sudo apt install ./<ファイル名>` で導入します。この .deb は、OBS Studio の公式の PPA (`ppa:obsproject/obs-studio`) から apt で導入した OBS Studio を前提にしています。
+
+On Ubuntu, install `simple-gradient-stripes-<version>-x86_64-linux-gnu.deb` from Releases with `sudo apt install ./<file name>`. The package expects OBS Studio installed with apt from the official PPA (`ppa:obsproject/obs-studio`).
+
+GitHub Actions 上の Ubuntu 24.04 (Mesa の OpenGL) で、しま模様の描画を自動で検証しています。作者は Linux の実機を持たないため、実機の GPU と OBS Studio では動作を確認していません。
+
+### macOS
+
+macOS 向けのビルドは GitHub Actions で生成し、macOS 15 (OpenGL) で描画を自動で検証しています。作者は macOS の実機で動作を確認していないため、配信プラグイン倉庫くんには macOS 版を載せていません。ソースからのビルドは「Build / ビルド」を参照してください。
+
+## Usage / 使い方
+
+1. OBS Studio を起動
+2. ソースの **+** ボタン → **Simple Gradient Stripes** (または **シンプルグラデーションストライプ**) を追加
+3. プロパティでパラメータを調整
+4. 背景に使うときはソースの一覧の下のほうに、装飾として重ねるときは重ねたい映像より上に置く
+
+配信中にしま模様を出し入れするには、OBS Studio 本体の機能を使います。
+
+- **ホットキー**: 設定 → ホットキー で、シーン名の見出しの下にある、このソースの表示と非表示の項目にキーを割り当てます。
+- **フェード**: ソースを右クリック → 表示トランジション・非表示トランジション に「フェード」を設定すると、表示と非表示の切替えがフェードします。
+
+To show or hide the stripes while streaming, use OBS Studio's built-in features. Assign keys to the show and hide items for this source under the scene's heading in Settings → Hotkeys. To fade the stripes in and out, right-click the source and set Show Transition and Hide Transition to Fade.
+
+## Parameters / パラメータ
+
+| Parameter | 日本語 | Range | Default |
+|-----------|--------|-------|---------|
+| Angle | 角度 | 0° ~ 360° | 30° |
+| Spacing | 間隔 | 4 ~ 2000 px | 120 px |
+| Speed | 流れる速さ | -2000 ~ 2000 px/s | 40 px/s |
+| Stripe color | しまの色 | - | White, opaque |
+| Background color | 地の色 | - | Transparent |
+| Softness | ぼかし | 0% ~ 100% | 50% |
+| Match canvas size | キャンバスの大きさに合わせる | On / Off | On |
+| Width / Height | 幅・高さ | 1 ~ 8192 | 1920 / 1080 |
+
+角度は、しまの線の傾きです。0° で水平の線になり、値を増やすと反時計回りに回ります。流れる速さが正のとき、しまは線に垂直な向きへ流れます。0° では下から上へ流れます。負の値で向きが逆になり、0 で止まります。
+
+間隔は、しまの色と地の色をひと組とした 1 周期の長さです。ぼかしが 0% のとき、しまと地は半周期ずつのくっきりした帯になります。100% では、しまの色と地の色の間を周期全体でなめらかに移り変わります。
+
+幅と高さは、「キャンバスの大きさに合わせる」をオフにしたときに使います。
+
+The angle is the slope of the stripe lines. At 0°, the lines are horizontal, and larger values rotate them counterclockwise. With a positive speed, the stripes move perpendicular to the lines; at 0°, they move upward. A negative speed reverses the direction, and 0 stops the stripes. The spacing is the length of one period, a stripe and the background next to it. At 0% softness, the stripe and the background are sharp bands of half a period each. At 100%, the colors blend smoothly over the whole period. Width and height are used when Match canvas size is off.
+
+## Known Behavior / 既知の挙動
+
+- しまの色と地の色の間の色は、線形の色空間で混ぜます。白と黒の中間は、sRGB の値で混ぜた場合より明るく見えます。
+- 間隔と流れる速さは、ソースの画素で数えます。シーンの中でソースを拡大や縮小すると、見た目の間隔と速さも同じ倍率で変わります。
+- 「キャンバスの大きさに合わせる」がオンのとき、ソースの大きさは OBS Studio の基本 (キャンバス) 解像度に従います。解像度を変えると、ソースの大きさも変わります。
+
+## Build / ビルド
+
+### Requirements / 必要環境
+
+| Platform | Tool |
+|----------|------|
+| Windows | Visual Studio 17 2022 |
+| Windows | CMake 3.28+ |
+| macOS | Xcode 16.0, CMake 3.28+ |
+| Ubuntu 24.04 | ninja-build, pkg-config, build-essential, CMake 3.28+ |
+
+### Build Commands / ビルドコマンド
+
+```bash
+# Windows
+cmake --preset windows-x64
+cmake --build build_x64 --config RelWithDebInfo
+
+# macOS
+cmake --preset macos
+cmake --build build_macos --config RelWithDebInfo
+
+# Ubuntu
+cmake --preset ubuntu-x86_64
+cmake --build build_x86_64 --config RelWithDebInfo
+```
+
+Windows で生成物を取り出すには、`cmake --install build_x64 --config RelWithDebInfo --prefix release/RelWithDebInfo` を実行してください。生成した製品フォルダーを前述の手順で導入してください。
+
+Windows では、描画テストを Direct3D 11 と OpenGL の両方で CTest に登録しています。OBS のグラフィックスの DLL を `cmake --build .deps/obs-studio-31.1.1/build_x64 --config Release --target libobs-d3d11 libobs-opengl` で作ってから、`ctest --test-dir build_x64 -C RelWithDebInfo` を実行してください。
+
+## AI利用開示 / AI Disclosure
+
+### 日本語
+
+v1.0.0 の制作では、Anthropic Claude Code を、調査、ソースコード、ビルド設定、テスト、文書を含むほぼすべての工程で使用しました。コード読解による厳密な人間レビューは実施していません。
+
+### English
+
+Anthropic Claude Code was used for almost the entire development process of v1.0.0, including research, source code, build configuration, tests, and documentation. The author did not perform a rigorous human review of the source code.
+
+## License / ライセンス
+
+GPL-2.0 License
+
+このプラグインは [obs-plugintemplate](https://github.com/obsproject/obs-plugintemplate) をベースにしています。
+
+## Author / 作者
+
+AllegroMoltoV - https://www.allegromoltov.jp
+
+## Changelog / 更新情報
+
+### v1.0.0
+
+- 最初の公開版です。
