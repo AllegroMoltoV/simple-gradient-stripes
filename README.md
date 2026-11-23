@@ -6,6 +6,8 @@ A simple input source plugin for OBS Studio that draws flowing gradient stripes.
 
 [配信プラグイン倉庫くん](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes) にも掲載しています。 / Also listed on [Plugin Soko-kun](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes?lang=en).
 
+![シンプルグラデーションストライプのプロパティで地の色を変えながら、しま模様が流れる様子](docs/images/simple-gradient-stripes.gif)
+
 ## Features / 機能
 
 しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色の不透明度を 0 にすると、しまだけをほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
@@ -23,7 +25,7 @@ An input source that draws stripes fading from the stripe color to the backgroun
 
 ### Windows
 
-Windows 版は OBS Studio 31.1 以降向けにビルドしています。
+Windows 版は OBS Studio 31.1 以降向けにビルドしています。OBS Studio 33.0.3 で、導入、再起動後の設定の保持、しま模様の描画を確認しています。
 
 #### 通常版 OBS への導入
 
@@ -145,11 +147,15 @@ Windows では、描画テストを Direct3D 11 と OpenGL の両方で CTest �
 
 ### 日本語
 
-v1.0.0 の制作では、Anthropic Claude Code を、調査、ソースコード、ビルド設定、テスト、文書を含むほぼすべての工程で使用しました。コード読解による厳密な人間レビューは実施していません。
+v1.0.0 の制作では、Anthropic Claude Code を、調査、ソースコード、ビルド設定、テスト、文書を含むほぼすべての工程で使用しました。リソースアイコンは、Claude Code が作成した SVG の案から、作者本人が選びました。
+
+作者本人は Windows 上の OBS Studio でユーザーテストを実施しました。コード読解による厳密な人間レビューは実施していません。概要説明欄のアニメーション GIF は、作者本人が ScreenToGif で画面収録したもので、生成 AI を使用していません。容量を収めるための縮小は、Claude Code が ffmpeg で行いました。
 
 ### English
 
-Anthropic Claude Code was used for almost the entire development process of v1.0.0, including research, source code, build configuration, tests, and documentation. The author did not perform a rigorous human review of the source code.
+Anthropic Claude Code was used for almost the entire development process of v1.0.0, including research, source code, build configuration, tests, and documentation. The resource icon was chosen by the author from SVG candidates that Claude Code drew.
+
+The author performed user testing in OBS Studio on Windows but did not perform a rigorous human review of the source code. The animated GIF in the description was screen-recorded by the author using ScreenToGif, without generative AI. Claude Code reduced its file size with ffmpeg.
 
 ## License / ライセンス
 
