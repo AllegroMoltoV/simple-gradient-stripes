@@ -1,6 +1,8 @@
 name: Check Code Formatting 🛠️
 on:
   workflow_call:
+permissions:
+  contents: read
 jobs:
   clang-format:
     runs-on: ubuntu-24.04
@@ -8,6 +10,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: clang-format check 🐉
         id: clang-format
         uses: ./.github/actions/run-clang-format
@@ -20,6 +23,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: gersemi Check 🎛️
         id: gersemi
         uses: ./.github/actions/run-gersemi

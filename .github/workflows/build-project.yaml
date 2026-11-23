@@ -5,6 +5,8 @@ on:
       pluginName:
         description: Project name detected by parsing build spec file
         value: ${{ jobs.check-event.outputs.pluginName }}
+permissions:
+  contents: read
 jobs:
   check-event:
     name: Check GitHub Event Data 🔎
@@ -23,6 +25,7 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Check Event Data ☑️
         id: setup
         env:
@@ -83,6 +86,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set Up Environment 🔧
         id: setup
@@ -196,6 +200,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set Up Environment 🔧
         id: setup
@@ -269,6 +274,7 @@ jobs:
         with:
           submodules: recursive
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Set Up Environment 🔧
         id: setup
