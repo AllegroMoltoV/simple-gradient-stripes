@@ -74,6 +74,10 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 40
     steps:
+      # OBS の公式 PPA が断続的に 503 を返すため、apt に失敗した取得を間隔を空けてやり直させる
+      - name: Retry apt downloads
+        run: echo 'Acquire::Retries "10";' | sudo tee /etc/apt/apt.conf.d/80-retries
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           submodules: recursive
