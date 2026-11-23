@@ -216,6 +216,31 @@ void scenario_softness(Checker &c)
 	obs_source_release(sharp);
 }
 
+// ぼかし 200% では三角形のカーネルがしまの幅いっぱいに広がり、濃淡が半分になる。
+// しまの中央の割合は 0.75、地の中央は 0.25 で、不透明度はおよそ 191 と 64 になる
+void scenario_softness_over_100(Checker &c)
+{
+	obs_source_t *source = create_stripes([](obs_data_t *s) { obs_data_set_int(s, "softness", 200); });
+	Image image;
+	if (!source || !render_settled(source, image)) {
+		c.expect(false, "failed to render the source");
+	} else {
+		save_image("softness-200", image);
+		const uint32_t x = image.width / 2;
+		int max_alpha = 0;
+		int min_alpha = 255;
+		for (uint32_t y = 0; y < image.height; ++y) {
+			max_alpha = std::max(max_alpha, alpha(image, x, y));
+			min_alpha = std::min(min_alpha, alpha(image, x, y));
+		}
+		c.expect(std::abs(max_alpha - 191) <= 6,
+			 "softness 200 stripe center alpha: " + std::to_string(max_alpha));
+		c.expect(std::abs(min_alpha - 64) <= 6,
+			 "softness 200 background center alpha: " + std::to_string(min_alpha));
+	}
+	obs_source_release(source);
+}
+
 // 地が透明のとき、しまの縁の半透明の画素の色はしまの色のままになる。黒くにじまない
 void scenario_transparent_background(Checker &c)
 {
@@ -371,6 +396,7 @@ const Scenario scenarios[] = {
 	{"rotation", scenario_rotation},
 	{"period", scenario_period},
 	{"softness", scenario_softness},
+	{"softness-over-100", scenario_softness_over_100},
 	{"transparent-background", scenario_transparent_background},
 	{"still", scenario_still},
 	{"flow", scenario_flow},

@@ -88,21 +88,21 @@ To show or hide the stripes while streaming, use OBS Studio's built-in features.
 | Parameter | 日本語 | Range | Default |
 |-----------|--------|-------|---------|
 | Angle | 角度 | 0° ~ 360° | 30° |
-| Spacing | 間隔 | 4 ~ 2000 px | 120 px |
-| Speed | 流れる速さ | -2000 ~ 2000 px/s | 40 px/s |
+| Spacing | 間隔 | 4 ~ 8192 px | 120 px |
+| Speed | 流れる速さ | 0 ~ 2000 px/s | 40 px/s |
 | Stripe color | しまの色 | - | White, opaque |
 | Background color | 地の色 | - | Transparent |
-| Softness | ぼかし | 0% ~ 100% | 50% |
+| Softness | ぼかし | 0% ~ 200% | 50% |
 | Match canvas size | キャンバスの大きさに合わせる | On / Off | On |
 | Width / Height | 幅・高さ | 1 ~ 8192 | 1920 / 1080 |
 
-角度は、しまの線の傾きです。0° で水平の線になり、値を増やすと反時計回りに回ります。流れる速さが正のとき、しまは線に垂直な向きへ流れます。0° では下から上へ流れます。負の値で向きが逆になり、0 で止まります。
+角度は、しまの線の傾きです。0° で水平の線になり、値を増やすと反時計回りに回ります。しまは線に垂直な向きへ流れ、0° では下から上へ流れます。逆向きに流すときは、角度に 180° を足してください。流れる速さを 0 にすると止まります。
 
-間隔は、しまの色と地の色をひと組とした 1 周期の長さです。ぼかしが 0% のとき、しまと地は半周期ずつのくっきりした帯になります。100% では、しまの色と地の色の間を周期全体でなめらかに移り変わります。
+間隔は、しまの色と地の色をひと組とした 1 周期の長さです。ぼかしが 0% のとき、しまと地は半周期ずつのくっきりした帯になります。ぼかしを増やすと縁がなめらかになり、100% でしまの中央から地の中央までが途切れなくつながります。100% を超えると、しまの濃淡そのものが薄れ、200% で濃淡が半分になります。ぼかしは式の中で計算するため、量を大きくしても処理は重くなりません。
 
 幅と高さは、「キャンバスの大きさに合わせる」をオフにしたときに使います。
 
-The angle is the slope of the stripe lines. At 0°, the lines are horizontal, and larger values rotate them counterclockwise. With a positive speed, the stripes move perpendicular to the lines; at 0°, they move upward. A negative speed reverses the direction, and 0 stops the stripes. The spacing is the length of one period, a stripe and the background next to it. At 0% softness, the stripe and the background are sharp bands of half a period each. At 100%, the colors blend smoothly over the whole period. Width and height are used when Match canvas size is off.
+The angle is the slope of the stripe lines. At 0°, the lines are horizontal, and larger values rotate them counterclockwise. The stripes move perpendicular to the lines; at 0°, they move upward. To reverse the direction, add 180° to the angle. A speed of 0 stops the stripes. The spacing is the length of one period, a stripe and the background next to it. At 0% softness, the stripe and the background are sharp bands of half a period each. More softness smooths the edges, and at 100% the colors blend continuously from the center of a stripe to the center of the background. Above 100%, the contrast itself fades, down to half at 200%. The softness is computed in closed form, so larger values do not cost more. Width and height are used when Match canvas size is off.
 
 ## Known Behavior / 既知の挙動
 

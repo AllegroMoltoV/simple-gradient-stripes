@@ -53,6 +53,7 @@ set(
   rotation
   period
   softness
+  softness-over-100
   transparent-background
   still
   flow
@@ -99,4 +100,21 @@ if(WIN32)
       )
     endforeach()
   endforeach()
+endif()
+
+# OBS Studio の中で導入を確かめる検査用のモジュール。配布物には含めない
+option(ENABLE_INSTALL_PROBE "Build the module that checks the installed plugin inside OBS Studio" OFF)
+if(WIN32 AND ENABLE_INSTALL_PROBE)
+  find_package(obs-frontend-api REQUIRED)
+  find_package(Qt6 REQUIRED COMPONENTS Widgets)
+  add_library(gradient-stripes-install-probe MODULE tests/install-probe.cpp)
+  target_compile_features(gradient-stripes-install-probe PRIVATE cxx_std_17)
+  target_link_libraries(gradient-stripes-install-probe PRIVATE OBS::libobs OBS::obs-frontend-api Qt6::Widgets)
+  set_target_properties(
+    gradient-stripes-install-probe
+    PROPERTIES
+      PREFIX ""
+      LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/install-probe"
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/install-probe"
+  )
 endif()

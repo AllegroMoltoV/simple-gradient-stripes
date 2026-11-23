@@ -25,7 +25,7 @@ env:
   PLUGIN_NAME: simple-gradient-stripes
   OBS_VERSION: 31.1.1
   # Keep this list equal to RENDER_TEST_SCENARIOS in CMakeLists.txt
-  SCENARIOS: horizontal vertical rotation period softness transparent-background still flow custom-size
+  SCENARIOS: horizontal vertical rotation period softness softness-over-100 transparent-background still flow custom-size
 jobs:
   windows-render:
     name: Render on Windows (D3D11)
