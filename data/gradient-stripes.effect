@@ -1,0 +1,54 @@
+// Simple Gradient Stripes
+// しまの線に垂直な向きへの距離を周期 spacing で繰り返し、三角波から色の割合を作る。
+// 色は呼び出し側で線形に直した値を受け取り、不透明度で重み付けして混ぜる。
+// OpenGL への変換で失敗しないよう、ビット演算、uint、微分関数を使わない。
+
+uniform float4x4 ViewProj;
+
+uniform float2 size;              // 出力の幅と高さ (画素)
+uniform float2 stripe_normal;     // しまの線に垂直な単位ベクトル。y は上向き
+uniform float spacing;            // しま 1 周期の長さ (画素)
+uniform float flow_offset;        // 周期に対する流れの位置 (0 から 1)
+uniform float edge_width;         // 三角波の上で色が切り替わる幅の半分 (0 から 0.5)
+uniform float4 stripe_color;      // しまの色。rgb は線形、a は不透明度
+uniform float4 background_color;  // 地の色。rgb は線形、a は不透明度
+
+struct VertInOut {
+    float4 pos : POSITION;
+    float2 uv  : TEXCOORD0;
+};
+
+VertInOut VSDefault(VertInOut v_in)
+{
+    VertInOut v_out;
+    v_out.pos = mul(float4(v_in.pos.xyz, 1.0), ViewProj);
+    v_out.uv  = v_in.uv;
+    return v_out;
+}
+
+float4 PSStripes(VertInOut v_in) : TARGET
+{
+    // 原点を出力の中心に置き、y を上向きにする。UV の y は下向き
+    float2 p = float2(v_in.uv.x * size.x - 0.5 * size.x, 0.5 * size.y - v_in.uv.y * size.y);
+
+    float phase = frac(dot(p, stripe_normal) / spacing - flow_offset);
+    // 周期の中央で 1、両端で 0 になる三角波
+    float tri = 1.0 - abs(2.0 * phase - 1.0);
+    float a = smoothstep(0.5 - edge_width, 0.5 + edge_width, tri);
+
+    // 不透明度で重み付けして混ぜる。透明な色の rgb が縁ににじまないようにするため
+    float alpha = lerp(background_color.a, stripe_color.a, a);
+    float3 weighted = lerp(background_color.rgb * background_color.a, stripe_color.rgb * stripe_color.a, a);
+    float3 rgb = weighted / max(alpha, 0.0001);
+
+    return float4(rgb, alpha);
+}
+
+technique Draw
+{
+    pass
+    {
+        vertex_shader = VSDefault(v_in);
+        pixel_shader  = PSStripes(v_in);
+    }
+}
