@@ -217,9 +217,10 @@ void source_get_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_double(settings, kAngle, 30.0);
 	obs_data_set_default_int(settings, kSpacing, 120);
-	obs_data_set_default_double(settings, kSpeed, 40.0);
-	obs_data_set_default_int(settings, kStripeColor, 0xFFFFFFFF);
-	obs_data_set_default_int(settings, kBackgroundColor, 0x00000000);
+	obs_data_set_default_double(settings, kSpeed, 100.0);
+	// 既定の 2 色はロゴと同じ水色 (#9fe7ff) と藍 (#3a3fd6)。OBS の色は 0xAABBGGRR で、どちらも不透明
+	obs_data_set_default_int(settings, kStripeColor, 0xFFFFE79F);
+	obs_data_set_default_int(settings, kBackgroundColor, 0xFFD63F3A);
 	obs_data_set_default_int(settings, kSoftness, 50);
 	obs_data_set_default_bool(settings, kUseCanvasSize, true);
 	obs_data_set_default_int(settings, kWidth, 1920);

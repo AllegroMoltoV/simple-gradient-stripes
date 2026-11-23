@@ -54,6 +54,7 @@ set(
   period
   softness
   softness-over-100
+  defaults
   transparent-background
   still
   flow

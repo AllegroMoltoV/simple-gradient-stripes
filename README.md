@@ -8,9 +8,9 @@ A simple input source plugin for OBS Studio that draws flowing gradient stripes.
 
 ## Features / 機能
 
-しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色は既定で透明なため、ほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
+しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色の不透明度を 0 にすると、しまだけをほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
 
-An input source that draws stripes fading from the stripe color to the background color and moves them at a constant speed. Use it as a stream background or as an overlay on other video. You can adjust the angle, spacing, speed, colors, and softness independently in the OBS properties. The background color is transparent by default, so the stripes can be layered over other sources. All drawing runs in a GPU shader. The plugin sends nothing over the network.
+An input source that draws stripes fading from the stripe color to the background color and moves them at a constant speed. Use it as a stream background or as an overlay on other video. You can adjust the angle, spacing, speed, colors, and softness independently in the OBS properties. Set the opacity of the background color to 0 to layer only the stripes over other sources. All drawing runs in a GPU shader. The plugin sends nothing over the network.
 
 - **Angle・角度** - しまの線の傾き
 - **Spacing・間隔** - しま 1 周期の長さ
@@ -74,7 +74,7 @@ macOS 向けのビルドは GitHub Actions で生成し、macOS 15 (OpenGL) で�
 1. OBS Studio を起動
 2. ソースの **+** ボタン → **Simple Gradient Stripes** (または **シンプルグラデーションストライプ**) を追加
 3. プロパティでパラメータを調整
-4. 背景に使うときはソースの一覧の下のほうに、装飾として重ねるときは重ねたい映像より上に置く
+4. 背景に使うときはソースの一覧の下のほうに置く。装飾として重ねるときは、地の色の不透明度を 0 にして、重ねたい映像より上に置く
 
 配信中にしま模様を出し入れするには、OBS Studio 本体の機能を使います。
 
@@ -89,9 +89,9 @@ To show or hide the stripes while streaming, use OBS Studio's built-in features.
 |-----------|--------|-------|---------|
 | Angle | 角度 | 0° ~ 360° | 30° |
 | Spacing | 間隔 | 4 ~ 8192 px | 120 px |
-| Speed | 流れる速さ | 0 ~ 2000 px/s | 40 px/s |
-| Stripe color | しまの色 | - | White, opaque |
-| Background color | 地の色 | - | Transparent |
+| Speed | 流れる速さ | 0 ~ 2000 px/s | 100 px/s |
+| Stripe color | しまの色 | - | Light blue #9FE7FF, opaque |
+| Background color | 地の色 | - | Indigo #3A3FD6, opaque |
 | Softness | ぼかし | 0% ~ 200% | 50% |
 | Match canvas size | キャンバスの大きさに合わせる | On / Off | On |
 | Width / Height | 幅・高さ | 1 ~ 8192 | 1920 / 1080 |
