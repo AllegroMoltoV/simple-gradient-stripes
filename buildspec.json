@@ -33,13 +33,13 @@
     },
     "platformConfig": {
         "macos": {
-            "bundleId": "com.example.plugintemplate-for-obs"
+            "bundleId": "com.allegromoltov.simple-gradient-stripes"
         }
     },
-    "name": "plugintemplate-for-obs",
-    "displayName": "Plugin Template for OBS",
+    "name": "simple-gradient-stripes",
+    "displayName": "シンプルグラデーションストライプ / Simple Gradient Stripes",
     "version": "1.0.0",
-    "author": "Your Name Here",
-    "website": "https://example.com",
-    "email": "me@example.com"
+    "author": "AllegroMoltoV",
+    "website": "https://www.allegromoltov.jp",
+    "email": "contact@allegromoltov.jp"
 }

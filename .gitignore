@@ -6,7 +6,10 @@
 !/build-aux
 !/cmake
 !/data
+!/docs
 !/src
+!/tests
+!/.soko-kun
 !.clang-format
 !.gersemirc
 !.gitignore
