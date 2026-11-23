@@ -40,9 +40,20 @@ constexpr const char *kWidth = "width";
 constexpr const char *kHeight = "height";
 
 constexpr int kMinSpacing = 4;
-constexpr int kMaxSpacing = 2000;
+constexpr int kMaxSpacing = 8192;
 constexpr int kMinSize = 1;
 constexpr int kMaxSize = 8192;
+// 流れの向きは角度で決めるため、速さは 0 以上だけにする
+constexpr double kMinSpeed = 0.0;
+constexpr double kMaxSpeed = 2000.0;
+// ぼかし (%)。100% を超えると、しまの濃淡が薄れていく
+constexpr int kMinSoftness = 0;
+constexpr int kMaxSoftness = 200;
+
+int get_int_clamped(obs_data_t *settings, const char *name, int min, int max)
+{
+	return static_cast<int>(std::clamp<long long>(obs_data_get_int(settings, name), min, max));
+}
 
 constexpr double kPi = 3.14159265358979323846;
 
@@ -61,7 +72,7 @@ public:
 			param_normal_ = gs_effect_get_param_by_name(effect_, "stripe_normal");
 			param_spacing_ = gs_effect_get_param_by_name(effect_, "spacing");
 			param_offset_ = gs_effect_get_param_by_name(effect_, "flow_offset");
-			param_edge_width_ = gs_effect_get_param_by_name(effect_, "edge_width");
+			param_kernel_width_ = gs_effect_get_param_by_name(effect_, "kernel_width");
 			param_stripe_color_ = gs_effect_get_param_by_name(effect_, "stripe_color");
 			param_background_color_ = gs_effect_get_param_by_name(effect_, "background_color");
 		} else {
@@ -87,14 +98,13 @@ public:
 		const double angle = obs_data_get_double(settings, kAngle) * kPi / 180.0;
 		// しまの線の向きは (cos, sin)。その法線へ流れる。y は上向き
 		vec2_set(&normal_, static_cast<float>(-std::sin(angle)), static_cast<float>(std::cos(angle)));
-		spacing_ = std::clamp(static_cast<int>(obs_data_get_int(settings, kSpacing)), kMinSpacing, kMaxSpacing);
-		speed_ = obs_data_get_double(settings, kSpeed);
-		softness_ = static_cast<float>(obs_data_get_int(settings, kSoftness)) / 100.0f;
+		spacing_ = get_int_clamped(settings, kSpacing, kMinSpacing, kMaxSpacing);
+		speed_ = std::clamp(obs_data_get_double(settings, kSpeed), kMinSpeed, kMaxSpeed);
+		softness_ =
+			static_cast<float>(get_int_clamped(settings, kSoftness, kMinSoftness, kMaxSoftness)) / 100.0f;
 		use_canvas_size_ = obs_data_get_bool(settings, kUseCanvasSize);
-		width_ = static_cast<uint32_t>(
-			std::clamp(static_cast<int>(obs_data_get_int(settings, kWidth)), kMinSize, kMaxSize));
-		height_ = static_cast<uint32_t>(
-			std::clamp(static_cast<int>(obs_data_get_int(settings, kHeight)), kMinSize, kMaxSize));
+		width_ = static_cast<uint32_t>(get_int_clamped(settings, kWidth, kMinSize, kMaxSize));
+		height_ = static_cast<uint32_t>(get_int_clamped(settings, kHeight, kMinSize, kMaxSize));
 		// 色は常に線形の値で混ぜる。不透明度で経路を切り替えると、グラデーションの見え方が不連続に変わるため
 		vec4_from_rgba_srgb(&stripe_color_, static_cast<uint32_t>(obs_data_get_int(settings, kStripeColor)));
 		vec4_from_rgba_srgb(&background_color_,
@@ -138,15 +148,16 @@ public:
 
 		vec2 size;
 		vec2_set(&size, static_cast<float>(width_px), static_cast<float>(height_px));
-		// 三角波は半周期で 0 から 1 まで変わる。1 画素ぶんは 2 / spacing で、その半分を縁の幅の下限にする。
-		// ぼかし 0 でも縁がぎざぎざにならないようにするため
-		const float edge_width = std::max(0.5f * softness_, 1.0f / spacing);
+		// 三角形のカーネルの半幅を、周期に対する割合で求める。ぼかし 100% で周期の 1/4 (しまの幅の半分) になり、
+		// 縁から縁までがなめらかにつながる。それを超えると濃淡が薄れ、200% で半分になる。
+		// 下限の 1 画素は、ぼかし 0 でも縁がぎざぎざにならないようにするため
+		const float kernel_width = std::max(0.25f * softness_, 1.0f / spacing);
 
 		gs_effect_set_vec2(param_size_, &size);
 		gs_effect_set_vec2(param_normal_, &normal_);
 		gs_effect_set_float(param_spacing_, spacing);
 		gs_effect_set_float(param_offset_, static_cast<float>(offset_));
-		gs_effect_set_float(param_edge_width_, edge_width);
+		gs_effect_set_float(param_kernel_width_, kernel_width);
 		gs_effect_set_vec4(param_stripe_color_, &stripe_color_);
 		gs_effect_set_vec4(param_background_color_, &background_color_);
 
@@ -165,7 +176,7 @@ private:
 	gs_eparam_t *param_normal_ = nullptr;
 	gs_eparam_t *param_spacing_ = nullptr;
 	gs_eparam_t *param_offset_ = nullptr;
-	gs_eparam_t *param_edge_width_ = nullptr;
+	gs_eparam_t *param_kernel_width_ = nullptr;
 	gs_eparam_t *param_stripe_color_ = nullptr;
 	gs_eparam_t *param_background_color_ = nullptr;
 
@@ -206,9 +217,10 @@ void source_get_defaults(obs_data_t *settings)
 {
 	obs_data_set_default_double(settings, kAngle, 30.0);
 	obs_data_set_default_int(settings, kSpacing, 120);
-	obs_data_set_default_double(settings, kSpeed, 40.0);
-	obs_data_set_default_int(settings, kStripeColor, 0xFFFFFFFF);
-	obs_data_set_default_int(settings, kBackgroundColor, 0x00000000);
+	obs_data_set_default_double(settings, kSpeed, 100.0);
+	// 既定の 2 色はロゴと同じ水色 (#9fe7ff) と藍 (#3a3fd6)。OBS の色は 0xAABBGGRR で、どちらも不透明
+	obs_data_set_default_int(settings, kStripeColor, 0xFFFFE79F);
+	obs_data_set_default_int(settings, kBackgroundColor, 0xFFD63F3A);
 	obs_data_set_default_int(settings, kSoftness, 50);
 	obs_data_set_default_bool(settings, kUseCanvasSize, true);
 	obs_data_set_default_int(settings, kWidth, 1920);
@@ -232,11 +244,11 @@ obs_properties_t *source_get_properties(void *)
 	obs_property_float_set_suffix(p, "\xC2\xB0");
 	p = obs_properties_add_int_slider(props, kSpacing, obs_module_text("Spacing"), kMinSpacing, kMaxSpacing, 1);
 	obs_property_int_set_suffix(p, " px");
-	p = obs_properties_add_float_slider(props, kSpeed, obs_module_text("Speed"), -2000.0, 2000.0, 1.0);
+	p = obs_properties_add_float_slider(props, kSpeed, obs_module_text("Speed"), kMinSpeed, kMaxSpeed, 1.0);
 	obs_property_float_set_suffix(p, " px/s");
 	obs_properties_add_color_alpha(props, kStripeColor, obs_module_text("StripeColor"));
 	obs_properties_add_color_alpha(props, kBackgroundColor, obs_module_text("BackgroundColor"));
-	p = obs_properties_add_int_slider(props, kSoftness, obs_module_text("Softness"), 0, 100, 1);
+	p = obs_properties_add_int_slider(props, kSoftness, obs_module_text("Softness"), kMinSoftness, kMaxSoftness, 1);
 	obs_property_int_set_suffix(p, " %");
 
 	p = obs_properties_add_bool(props, kUseCanvasSize, obs_module_text("UseCanvasSize"));

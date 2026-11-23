@@ -1,5 +1,6 @@
 // Simple Gradient Stripes
-// しまの線に垂直な向きへの距離を周期 spacing で繰り返し、三角波から色の割合を作る。
+// 周期 spacing の矩形波 (周期の中央の半分がしま) を、三角形のカーネルで解析的にぼかす。
+// ぼかしの量に関係なく、1 画素あたりの計算量は一定である。
 // 色は呼び出し側で線形に直した値を受け取り、不透明度で重み付けして混ぜる。
 // OpenGL への変換で失敗しないよう、ビット演算、uint、微分関数を使わない。
 
@@ -9,7 +10,7 @@ uniform float2 size;              // 出力の幅と高さ (画素)
 uniform float2 stripe_normal;     // しまの線に垂直な単位ベクトル。y は上向き
 uniform float spacing;            // しま 1 周期の長さ (画素)
 uniform float flow_offset;        // 周期に対する流れの位置 (0 から 1)
-uniform float edge_width;         // 三角波の上で色が切り替わる幅の半分 (0 から 0.5)
+uniform float kernel_width;       // 三角形のカーネルの半幅。周期に対する割合 (0 より大きく 0.5 以下)
 uniform float4 stripe_color;      // しまの色。rgb は線形、a は不透明度
 uniform float4 background_color;  // 地の色。rgb は線形、a は不透明度
 
@@ -26,15 +27,46 @@ VertInOut VSDefault(VertInOut v_in)
     return v_out;
 }
 
+// 三角形のカーネルの累積分布。x はカーネルの半幅で割った縁までの距離
+float TentCdf(float x)
+{
+    float c = clamp(x, -1.0, 1.0);
+    float r = 1.0 - c;
+    float l = 1.0 + c;
+    return c >= 0.0 ? 1.0 - 0.5 * r * r : 0.5 * l * l;
+}
+
+// 平均 0.5 と 1 次の項を除いた矩形波の 2 回積分。周期 1 で、v = 0 がしまの始まり
+float SquareSecondIntegral(float v)
+{
+    float f = frac(v);
+    float g = f < 0.5 ? f : f - 0.5;
+    float s = f < 0.5 ? 0.25 : -0.25;
+    return s * g * (g - 0.5);
+}
+
+// 位相 u (周期 1) での、しまの色の割合
+float StripeCoverage(float u, float w)
+{
+    if (w <= 0.25) {
+        // カーネルが縁を 1 つしか含まない範囲。最寄りの縁までの距離から求める。
+        // 2 回積分の差を使うと、カーネルが小さいときに 32 ビットの浮動小数で桁落ちするため
+        float d = 0.25 - abs(frac(u) - 0.5);
+        return TentCdf(d / w);
+    }
+    // カーネルが複数の縁にまたがる範囲。2 回積分の 2 階差分を半幅の 2 乗で割る
+    float v = u - 0.25;
+    float second = SquareSecondIntegral(v + w) - 2.0 * SquareSecondIntegral(v) + SquareSecondIntegral(v - w);
+    return 0.5 + second / (w * w);
+}
+
 float4 PSStripes(VertInOut v_in) : TARGET
 {
     // 原点を出力の中心に置き、y を上向きにする。UV の y は下向き
     float2 p = float2(v_in.uv.x * size.x - 0.5 * size.x, 0.5 * size.y - v_in.uv.y * size.y);
 
-    float phase = frac(dot(p, stripe_normal) / spacing - flow_offset);
-    // 周期の中央で 1、両端で 0 になる三角波
-    float tri = 1.0 - abs(2.0 * phase - 1.0);
-    float a = smoothstep(0.5 - edge_width, 0.5 + edge_width, tri);
+    float u = dot(p, stripe_normal) / spacing - flow_offset;
+    float a = saturate(StripeCoverage(u, kernel_width));
 
     // 不透明度で重み付けして混ぜる。透明な色の rgb が縁ににじまないようにするため
     float alpha = lerp(background_color.a, stripe_color.a, a);

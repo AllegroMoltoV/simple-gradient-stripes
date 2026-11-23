@@ -6,11 +6,13 @@ A simple input source plugin for OBS Studio that draws flowing gradient stripes.
 
 [配信プラグイン倉庫くん](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes) にも掲載しています。 / Also listed on [Plugin Soko-kun](https://soko-kun.allegromoltov.jp/plugins/allegromoltov/simple-gradient-stripes?lang=en).
 
+![シンプルグラデーションストライプのプロパティで地の色を変えながら、しま模様が流れる様子](docs/images/simple-gradient-stripes.gif)
+
 ## Features / 機能
 
-しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色は既定で透明なため、ほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
+しまの色から地の色へなめらかに移り変わるしま模様を描き、一定の速さで流す入力ソースです。配信の背景や、映像に重ねる装飾に使えます。角度・間隔・流れる速さ・色・ぼかしを、OBS の設定画面でそれぞれ独立に調整できます。地の色の不透明度を 0 にすると、しまだけをほかのソースの上に重ねられます。描画はすべて GPU のシェーダーで行います。このプラグインはネットワークに何も送りません。
 
-An input source that draws stripes fading from the stripe color to the background color and moves them at a constant speed. Use it as a stream background or as an overlay on other video. You can adjust the angle, spacing, speed, colors, and softness independently in the OBS properties. The background color is transparent by default, so the stripes can be layered over other sources. All drawing runs in a GPU shader. The plugin sends nothing over the network.
+An input source that draws stripes fading from the stripe color to the background color and moves them at a constant speed. Use it as a stream background or as an overlay on other video. You can adjust the angle, spacing, speed, colors, and softness independently in the OBS properties. Set the opacity of the background color to 0 to layer only the stripes over other sources. All drawing runs in a GPU shader. The plugin sends nothing over the network.
 
 - **Angle・角度** - しまの線の傾き
 - **Spacing・間隔** - しま 1 周期の長さ
@@ -23,7 +25,7 @@ An input source that draws stripes fading from the stripe color to the backgroun
 
 ### Windows
 
-Windows 版は OBS Studio 31.1 以降向けにビルドしています。
+Windows 版は OBS Studio 31.1 以降向けにビルドしています。OBS Studio 33.0.3 で、導入、再起動後の設定の保持、しま模様の描画を確認しています。
 
 #### 通常版 OBS への導入
 
@@ -74,7 +76,7 @@ macOS 向けのビルドは GitHub Actions で生成し、macOS 15 (OpenGL) で�
 1. OBS Studio を起動
 2. ソースの **+** ボタン → **Simple Gradient Stripes** (または **シンプルグラデーションストライプ**) を追加
 3. プロパティでパラメータを調整
-4. 背景に使うときはソースの一覧の下のほうに、装飾として重ねるときは重ねたい映像より上に置く
+4. 背景に使うときはソースの一覧の下のほうに置く。装飾として重ねるときは、地の色の不透明度を 0 にして、重ねたい映像より上に置く
 
 配信中にしま模様を出し入れするには、OBS Studio 本体の機能を使います。
 
@@ -88,21 +90,21 @@ To show or hide the stripes while streaming, use OBS Studio's built-in features.
 | Parameter | 日本語 | Range | Default |
 |-----------|--------|-------|---------|
 | Angle | 角度 | 0° ~ 360° | 30° |
-| Spacing | 間隔 | 4 ~ 2000 px | 120 px |
-| Speed | 流れる速さ | -2000 ~ 2000 px/s | 40 px/s |
-| Stripe color | しまの色 | - | White, opaque |
-| Background color | 地の色 | - | Transparent |
-| Softness | ぼかし | 0% ~ 100% | 50% |
+| Spacing | 間隔 | 4 ~ 8192 px | 120 px |
+| Speed | 流れる速さ | 0 ~ 2000 px/s | 100 px/s |
+| Stripe color | しまの色 | - | Light blue #9FE7FF, opaque |
+| Background color | 地の色 | - | Indigo #3A3FD6, opaque |
+| Softness | ぼかし | 0% ~ 200% | 50% |
 | Match canvas size | キャンバスの大きさに合わせる | On / Off | On |
 | Width / Height | 幅・高さ | 1 ~ 8192 | 1920 / 1080 |
 
-角度は、しまの線の傾きです。0° で水平の線になり、値を増やすと反時計回りに回ります。流れる速さが正のとき、しまは線に垂直な向きへ流れます。0° では下から上へ流れます。負の値で向きが逆になり、0 で止まります。
+角度は、しまの線の傾きです。0° で水平の線になり、値を増やすと反時計回りに回ります。しまは線に垂直な向きへ流れ、0° では下から上へ流れます。逆向きに流すときは、角度に 180° を足してください。流れる速さを 0 にすると止まります。
 
-間隔は、しまの色と地の色をひと組とした 1 周期の長さです。ぼかしが 0% のとき、しまと地は半周期ずつのくっきりした帯になります。100% では、しまの色と地の色の間を周期全体でなめらかに移り変わります。
+間隔は、しまの色と地の色をひと組とした 1 周期の長さです。ぼかしが 0% のとき、しまと地は半周期ずつのくっきりした帯になります。ぼかしを増やすと縁がなめらかになり、100% でしまの中央から地の中央までが途切れなくつながります。100% を超えると、しまの濃淡そのものが薄れ、200% で濃淡が半分になります。ぼかしは式の中で計算するため、量を大きくしても処理は重くなりません。
 
 幅と高さは、「キャンバスの大きさに合わせる」をオフにしたときに使います。
 
-The angle is the slope of the stripe lines. At 0°, the lines are horizontal, and larger values rotate them counterclockwise. With a positive speed, the stripes move perpendicular to the lines; at 0°, they move upward. A negative speed reverses the direction, and 0 stops the stripes. The spacing is the length of one period, a stripe and the background next to it. At 0% softness, the stripe and the background are sharp bands of half a period each. At 100%, the colors blend smoothly over the whole period. Width and height are used when Match canvas size is off.
+The angle is the slope of the stripe lines. At 0°, the lines are horizontal, and larger values rotate them counterclockwise. The stripes move perpendicular to the lines; at 0°, they move upward. To reverse the direction, add 180° to the angle. A speed of 0 stops the stripes. The spacing is the length of one period, a stripe and the background next to it. At 0% softness, the stripe and the background are sharp bands of half a period each. More softness smooths the edges, and at 100% the colors blend continuously from the center of a stripe to the center of the background. Above 100%, the contrast itself fades, down to half at 200%. The softness is computed in closed form, so larger values do not cost more. Width and height are used when Match canvas size is off.
 
 ## Known Behavior / 既知の挙動
 
@@ -145,11 +147,15 @@ Windows では、描画テストを Direct3D 11 と OpenGL の両方で CTest �
 
 ### 日本語
 
-v1.0.0 の制作では、Anthropic Claude Code を、調査、ソースコード、ビルド設定、テスト、文書を含むほぼすべての工程で使用しました。コード読解による厳密な人間レビューは実施していません。
+v1.0.0 の制作では、Anthropic Claude Code を、調査、ソースコード、ビルド設定、テスト、文書を含むほぼすべての工程で使用しました。リソースアイコンは、Claude Code が作成した SVG の案から、作者本人が選びました。
+
+作者本人は Windows 上の OBS Studio でユーザーテストを実施しました。コード読解による厳密な人間レビューは実施していません。概要説明欄のアニメーション GIF は、作者本人が ScreenToGif で画面収録したもので、生成 AI を使用していません。容量を収めるための縮小は、Claude Code が ffmpeg で行いました。
 
 ### English
 
-Anthropic Claude Code was used for almost the entire development process of v1.0.0, including research, source code, build configuration, tests, and documentation. The author did not perform a rigorous human review of the source code.
+Anthropic Claude Code was used for almost the entire development process of v1.0.0, including research, source code, build configuration, tests, and documentation. The resource icon was chosen by the author from SVG candidates that Claude Code drew.
+
+The author performed user testing in OBS Studio on Windows but did not perform a rigorous human review of the source code. The animated GIF in the description was screen-recorded by the author using ScreenToGif, without generative AI. Claude Code reduced its file size with ffmpeg.
 
 ## License / ライセンス
 
